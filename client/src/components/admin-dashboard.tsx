@@ -79,7 +79,7 @@ export function AdminDashboard() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Scans</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-total-scans">
-                      {stats?.totalScans?.toLocaleString() || '0'}
+                      {(stats as any)?.totalScans?.toLocaleString() || '0'}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -99,7 +99,7 @@ export function AdminDashboard() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Malicious Detected</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-malicious-count">
-                      {stats?.maliciousCount?.toLocaleString() || '0'}
+                      {(stats as any)?.maliciousCount?.toLocaleString() || '0'}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-destructive/10 rounded-lg flex items-center justify-center">
@@ -119,7 +119,7 @@ export function AdminDashboard() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-error-rate">
-                      {stats?.errorRate?.toFixed(1) || '0.0'}%
+                      {(stats as any)?.errorRate?.toFixed(1) || '0.0'}%
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -139,7 +139,7 @@ export function AdminDashboard() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Active Users</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-active-users">
-                      {stats?.activeUsers?.toLocaleString() || '0'}
+                      {(stats as any)?.activeUsers?.toLocaleString() || '0'}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">

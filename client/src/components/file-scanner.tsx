@@ -25,7 +25,7 @@ export function FileScanner({ onResult }: FileScannerProps) {
         reader.onload = async () => {
           try {
             const buffer = reader.result as ArrayBuffer;
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+            const base64 = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(buffer))));
             
             const response = await apiRequest("POST", "/api/scan-file", {
               fileBuffer: base64,
