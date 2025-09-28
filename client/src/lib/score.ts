@@ -1,0 +1,175 @@
+import { checkGoogleSafeBrowsing } from './providers/gsb';
+import { checkPhishTank } from './providers/phishtank';
+import { getWhoisData } from './providers/whois';
+import { analyzeUrlHeuristics, analyzeDomainAge } from './providers/heuristics';
+import { submitToUrlScan } from './providers/urlscan';
+import type { SecurityCheck, DomainInfo } from './types';
+
+export async function checkUrlSafety(url: string): Promise<{
+  riskScore: number;
+  verdict: 'safe' | 'suspicious' | 'malicious';
+  reasons: string[];
+  metadata: Record<string, any>;
+  securityChecks: SecurityCheck[];
+  domainInfo?: DomainInfo;
+}> {
+  const reasons: string[] = [];
+  const securityChecks: SecurityCheck[] = [];
+  let totalScore = 0;
+  const metadata: Record<string, any> = {};
+
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+
+    // Google Safe Browsing check
+    try {
+      const gsbResult = await checkGoogleSafeBrowsing(url);
+      if (!gsbResult.isSafe) {
+        totalScore += 60;
+        reasons.push(`Flagged by Google Safe Browsing: ${gsbResult.threatType}`);
+        securityChecks.push({
+          name: 'Google Safe Browsing',
+          status: 'malicious',
+          details: gsbResult.threatType || 'Threat detected'
+        });
+      } else {
+        securityChecks.push({
+          name: 'Google Safe Browsing',
+          status: 'clean',
+          details: 'No threats detected'
+        });
+      }
+    } catch (error) {
+      securityChecks.push({
+        name: 'Google Safe Browsing',
+        status: 'error',
+        details: 'Check failed'
+      });
+    }
+
+    // PhishTank check
+    try {
+      const phishResult = await checkPhishTank(url);
+      if (phishResult.isPhishing) {
+        totalScore += 70;
+        reasons.push(`Identified as phishing site: ${phishResult.details}`);
+        securityChecks.push({
+          name: 'PhishTank',
+          status: 'malicious',
+          details: phishResult.details || 'Phishing detected'
+        });
+      } else {
+        securityChecks.push({
+          name: 'PhishTank',
+          status: 'clean',
+          details: 'Not in phishing database'
+        });
+      }
+    } catch (error) {
+      securityChecks.push({
+        name: 'PhishTank',
+        status: 'error',
+        details: 'Check failed'
+      });
+    }
+
+    // WHOIS and domain age analysis
+    let domainInfo: DomainInfo | undefined;
+    try {
+      const whoisData = await getWhoisData(domain);
+      const ageAnalysis = analyzeDomainAge(whoisData.age);
+      
+      totalScore += ageAnalysis.score;
+      if (ageAnalysis.flag) {
+        reasons.push(ageAnalysis.flag);
+      }
+
+      domainInfo = {
+        registrar: whoisData.registrar || 'Unknown',
+        ip: '0.0.0.0', // Would need IP lookup service
+        country: 'Unknown', // Would need GeoIP service
+        age: whoisData.age || 0
+      };
+
+      securityChecks.push({
+        name: 'Domain Age',
+        status: ageAnalysis.score > 20 ? 'suspicious' : 'clean',
+        details: whoisData.age ? `${whoisData.age} days old` : 'Unknown age'
+      });
+    } catch (error) {
+      securityChecks.push({
+        name: 'Domain Age',
+        status: 'error',
+        details: 'WHOIS lookup failed'
+      });
+    }
+
+    // Heuristic analysis
+    const heuristicResult = analyzeUrlHeuristics(url);
+    totalScore += heuristicResult.score;
+    reasons.push(...heuristicResult.flags);
+
+    if (heuristicResult.flags.length > 0) {
+      securityChecks.push({
+        name: 'Heuristic Analysis',
+        status: heuristicResult.score > 30 ? 'suspicious' : 'clean',
+        details: `${heuristicResult.flags.length} suspicious patterns detected`
+      });
+    } else {
+      securityChecks.push({
+        name: 'Heuristic Analysis',
+        status: 'clean',
+        details: 'No suspicious patterns found'
+      });
+    }
+
+    // Submit to URLScan.io for background analysis
+    try {
+      const urlscanResult = await submitToUrlScan(url);
+      if (urlscanResult.uuid) {
+        metadata.urlscanUuid = urlscanResult.uuid;
+      }
+    } catch (error) {
+      console.warn('URLScan.io submission failed:', error);
+    }
+
+    // Determine verdict
+    let verdict: 'safe' | 'suspicious' | 'malicious';
+    if (totalScore >= 70) {
+      verdict = 'malicious';
+    } else if (totalScore >= 30) {
+      verdict = 'suspicious';
+    } else {
+      verdict = 'safe';
+    }
+
+    // Add summary reason
+    if (reasons.length === 0) {
+      reasons.push('No security threats detected');
+    }
+
+    return {
+      riskScore: Math.min(totalScore, 100),
+      verdict,
+      reasons,
+      metadata,
+      securityChecks,
+      domainInfo
+    };
+
+  } catch (error) {
+    console.error('URL safety check failed:', error);
+    return {
+      riskScore: 50,
+      verdict: 'suspicious',
+      reasons: ['URL analysis failed'],
+      metadata: { error: error instanceof Error ? error.message : 'Unknown error' },
+      securityChecks: [{
+        name: 'URL Analysis',
+        status: 'error',
+        details: 'Analysis failed'
+      }]
+    };
+  }
+}
