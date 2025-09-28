@@ -1,0 +1,101 @@
+Project: TryggLink - URL & File Scanner (MVP)
+
+Goal: Build a fully functional MVP web application called "TryggLink" with a modern, trustworthy, mobile-friendly interface. The app should allow users to:
+ - paste a URL and get a risk assessment (Safe / Suspicious / Malicious) with explanation,
+ - upload files (e.g. .exe, .docx, .zip) for scanning and get a report (safe/suspicious/malicious),
+ - show a short explanation of which checks were performed and why the result was given.
+
+Tech stack:
+ - Frontend: Next.js (React) + Tailwind CSS
+ - Backend: Next.js API routes or Express integrated in the same repo
+ - Database / cache: Supabase (Postgres) or Redis (caching); ensure it works with Postgres
+ - Job queue: BullMQ (Redis) or a simple worker process for heavier tasks (screenshots, sandbox)
+ - Dev/Docker: Dockerfile + docker-compose (for local dev)
+ - Testing: Jest/React Testing Library for key components
+
+Requirements & Features:
+1. UI / Pages
+  - Landing page (/): headline “TryggLink — check a link before you click”, short pitch, input field for URL, “Check Now” button, disclaimer (“indicator, not a guarantee”).
+  - Results modal/page: show score 0–100, verdict (Safe / Suspicious / Malicious), bullet list of reasons (e.g. “found in PhishTank”, “newly registered domain”, “certificate mismatch”, “hit in Google Safe Browsing”).
+  - File scan page (/scan-file): drag & drop or file selector, show progress and results (AV hits, sandbox summary if available).
+  - Admin dashboard (protected by simple env password): show last 100 scans, error rate, top 10 flagged domains, option to re-scan.
+  - Footer: contact, privacy, terms, logo.
+
+2. Frontend UX & design
+  - Modern, clean, trustworthy. Focus on white space and clarity.  
+  - Use Tailwind for styling. Fully responsive (mobile-first).  
+  - Display loading, error, and “confidence” indicators (progress bar + color: green/yellow/red).  
+  - Accessibility: forms with labels, ARIA attributes, keyboard navigation.
+
+3. Backend risk scoring engine
+  - Implement a `ReputationProvider` interface with:
+    - Google Safe Browsing (Web Risk API)
+    - PhishTank (API or dataset)
+    - urlscan.io (for screenshots/artifacts) — run in background queue
+    - WHOIS / RDAP (domain age, registrar)
+    - AbuseIPDB or IPinfo (IP/ASN reputation)
+    - Custom heuristics: domain age < 90 days, URL length > 200, use of `@`, IP as host, too many subdomains, suspicious characters, TLS absence/mismatch. Each contributes to score.
+  - Combine into a final `risk_score` (0–100) and `reasons[]`.
+  - Cache results in Redis/Postgres for 24h to reduce API cost.
+
+4. File scanning
+  - For MVP: use VirusTotal Public API as enrichment **(dev only)**. Wrap in a provider so it can be swapped for Enterprise or custom later.
+  - On file upload: generate sha256 hash, check cache, otherwise push to queue for async scanning. Show “Results will be available shortly” message.
+
+5. Logging, rate limiting, security
+  - Rate limit endpoints (e.g. 10 checks/minute per IP).  
+  - Store API keys in Replit Secrets / .env.  
+  - GDPR: anonymize URLs if containing personal data; only log normalized URL + hash + metadata + verdict.  
+  - Clear disclaimer + “report false positive” button.
+
+6. Deployment & DevOps
+  - Include Dockerfile + docker-compose (app + Postgres + Redis).  
+  - README: how to run locally, how to deploy (Vercel/Render).  
+  - CI: GitHub Actions for lint, test, build.
+
+7. Env / Secrets (use these variable names)
+  - NEXT_PUBLIC_APP_NAME=TryggLink  
+  - DATABASE_URL=postgres://...  
+  - REDIS_URL=redis://...  
+  - GSB_API_KEY=...  
+  - PHISHTANK_API_KEY=...  
+  - URLSCAN_API_KEY=...  
+  - VIRUSTOTAL_API_KEY=... (dev enrichment only)  
+  - ADMIN_PASSWORD=...  
+  - SENTRY_DSN=... (optional)
+
+8. Suggested structure
+  - /app (Next.js pages/app)  
+  - /components (Header, Footer, UrlForm, FileUploader, ResultCard, Badge)  
+  - /lib/providers (gsb.ts, phishtank.ts, urlscan.ts, whois.ts, heuristics.ts)  
+  - /lib/score.ts (scoring logic)  
+  - /pages/api/check-url (POST)  
+  - /pages/api/scan-file (POST)  
+  - /workers (queue workers)  
+  - /dashboard (admin)  
+  - /scripts (db-init, migrate)  
+  - Dockerfile, docker-compose.yml, README.md
+
+9. UX copy
+  - Headline: “Check if a link is safe before you click. Results are indicators — always use common sense.”  
+  - Button: “Check Now”  
+  - File upload: “Drag a file here or choose from disk”  
+  - Disclaimer: “TryggLink provides an indication only. Not legal proof. If you suspect fraud, contact your bank/police.”
+
+10. Deliverables
+  - Next.js app with Tailwind, functional API endpoints (mock providers for now).  
+  - README with setup instructions, Docker commands, API key config.  
+  - Unit tests for scoring logic + simple e2e test for URL flow.
+
+Development phases:
+ - Day 1: scaffold project, UI skeleton.  
+ - Days 2–4: implement providers & scoring engine (mock + real keys).  
+ - Days 5–6: file upload + queue.  
+ - Day 7: admin dashboard, caching, rate limiting.  
+ - Day 8: testing, docs, polish.
+
+Start with free APIs (Google Safe Browsing, PhishTank, urlscan free tier). Add premium/enterprise later.
+
+---
+
+Paste this prompt into Replit and let the AI scaffold the project. 
