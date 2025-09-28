@@ -21,27 +21,25 @@ export function FileScanner({ onResult }: FileScannerProps) {
 
   const scanMutation = useMutation({
     mutationFn: async (file: File) => {
-      return new Promise<ScanResult>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async () => {
-          try {
-            const buffer = reader.result as ArrayBuffer;
-            const base64 = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(buffer))));
-            
-            const response = await apiRequest("POST", "/api/scan-file", {
-              fileBuffer: base64,
-              fileName: file.name,
-            });
-            
-            const result = await response.json();
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
-        };
-        reader.onerror = () => reject(new Error(nb.errors.uploadFailed));
-        reader.readAsArrayBuffer(file);
-      });
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileName', file.name);
+        
+        const response = await fetch('/api/scan-file', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        throw error instanceof Error ? error : new Error(nb.errors.uploadFailed);
+      }
     },
     onMutate: () => {
       setProgress(0);
@@ -107,86 +105,79 @@ export function FileScanner({ onResult }: FileScannerProps) {
   }, [handleFileSelect]);
 
   return (
-    <section className="py-20 bg-muted" data-testid="file-scanner">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            {nb.fileScanner.title}
-          </h2>
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            {nb.fileScanner.description}
-          </p>
-
-          {/* File Upload Area */}
-          <Card 
-            className={`border-2 border-dashed transition-colors cursor-pointer ${
-              dragOver 
-                ? 'border-primary bg-primary/5' 
-                : 'border-border hover:border-primary'
-            }`}
-            onDrop={handleDrop}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            data-testid="file-drop-zone"
-          >
-            <CardContent className="p-12">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CloudUpload className="text-3xl text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">
-                  {nb.fileScanner.dropZoneText}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {nb.fileScanner.supportedTypes} ({nb.fileScanner.maxSize})
-                </p>
-                
-                <input 
-                  type="file" 
-                  id="file-upload" 
-                  className="hidden" 
-                  onChange={handleFileInput}
-                  disabled={scanMutation.isPending}
-                  data-testid="input-file"
-                />
-                <label htmlFor="file-upload">
-                  <Button 
-                    asChild 
-                    disabled={scanMutation.isPending}
-                    data-testid="button-choose-file"
-                  >
-                    <span className="cursor-pointer">
-                      <Upload className="mr-2 h-4 w-4" />
-                      {nb.fileScanner.uploadButton}
-                    </span>
-                  </Button>
-                </label>
+    <div className="w-full space-y-6" data-testid="file-scanner">
+      {/* File Upload Area */}
+      <div className="text-center">
+        <Card 
+          className={`border-2 border-dashed transition-colors cursor-pointer bg-slate-700/30 ${
+            dragOver 
+              ? 'border-blue-400 bg-blue-400/10' 
+              : 'border-slate-600 hover:border-blue-400/50'
+          }`}
+          onDrop={handleDrop}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          data-testid="file-drop-zone"
+        >
+          <CardContent className="p-16">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CloudUpload className="text-blue-400 h-10 w-10" />
               </div>
+              <h3 className="text-lg font-medium text-white mb-3">
+                {nb.fileScanner.dropZoneText}
+              </h3>
+              <p className="text-slate-400 mb-6">
+                {nb.fileScanner.supportedTypes} ({nb.fileScanner.maxSize})
+              </p>
+              
+              <input 
+                type="file" 
+                id="file-upload" 
+                className="hidden" 
+                accept="*/*"
+                onChange={handleFileInput}
+                disabled={scanMutation.isPending}
+                data-testid="input-file"
+              />
+              <label htmlFor="file-upload">
+                <Button 
+                  asChild 
+                  disabled={scanMutation.isPending}
+                  className="bg-blue-500 hover:bg-blue-600 text-white h-12 px-8 text-lg font-semibold"
+                  data-testid="button-choose-file"
+                >
+                  <span className="cursor-pointer">
+                    <Upload className="mr-2 h-5 w-5" />
+                    {nb.main.chooseFile}
+                  </span>
+                </Button>
+              </label>
+            </div>
 
-              {/* Upload Progress */}
-              {scanMutation.isPending && selectedFile && (
-                <div className="mt-8" data-testid="upload-progress">
-                  <Card className="bg-muted border-0">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <File className="h-4 w-4" />
-                          <span className="text-sm font-medium">{selectedFile.name}</span>
-                        </div>
-                        <span className="text-sm text-muted-foreground">{nb.fileScanner.scanning}</span>
+            {/* Upload Progress */}
+            {scanMutation.isPending && selectedFile && (
+              <div className="mt-8" data-testid="upload-progress">
+                <Card className="bg-slate-800 border-slate-600">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <File className="h-4 w-4 text-blue-400" />
+                        <span className="text-sm font-medium text-white">{selectedFile.name}</span>
                       </div>
-                      <Progress value={progress} className="w-full" />
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      <span className="text-sm text-slate-400">{nb.fileScanner.scanning}</span>
+                    </div>
+                    <Progress value={progress} className="w-full" />
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </section>
+    </div>
   );
 }

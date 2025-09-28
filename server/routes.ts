@@ -5,7 +5,16 @@ import { insertScanResultSchema, insertApiUsageSchema } from "@shared/schema";
 import { z } from "zod";
 import { checkUrlSafetyServer } from "./lib/score";
 import { checkAbuseIPDB } from "./lib/abuseipdb";
+import multer from "multer";
 import crypto from "crypto";
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 32 * 1024 * 1024, // 32MB limit
+  },
+});
 
 // Rate limiting store
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -88,17 +97,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File Scan endpoint
-  app.post("/api/scan-file", async (req, res) => {
+  app.post("/api/scan-file", upload.single('file'), async (req, res) => {
     try {
-      const { fileBuffer, fileName } = req.body;
+      const file = req.file;
+      const fileName = req.body.fileName || file?.originalname;
       
-      if (!fileBuffer || !fileName) {
-        return res.status(400).json({ error: 'File buffer and name required' });
+      if (!file || !fileName) {
+        return res.status(400).json({ error: 'File and filename required' });
       }
       
-      // Generate file hash
-      const hash = crypto.createHash('sha256').update(Buffer.from(fileBuffer, 'base64')).digest('hex');
-      const fileSize = Buffer.from(fileBuffer, 'base64').length;
+      // Generate file hash from buffer
+      const hash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+      const fileSize = file.buffer.length;
       
       // Check cache first
       const cached = await storage.getScanResultByFileHash(hash);

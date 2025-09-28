@@ -91,6 +91,17 @@ export const nb = {
     disclaimer: 'TryggLink gir kun en indikasjon. Ikke juridisk bevis. Ved mistanke om svindel, kontakt din bank/politi.'
   },
 
+  // Main Interface
+  main: {
+    fileTab: 'FIL',
+    urlTab: 'URL',
+    chooseFile: 'Velg fil',
+    enterUrl: 'Skriv inn URL',
+    urlPlaceholder: 'https://example.com',
+    analyzeButton: 'Analyser',
+    subtitle: 'Analyser mistenkelige filer, domener, IP-er og URL-er for å oppdage skadelig programvare og andre sikkerhetsbrudd'
+  },
+
   // Common UI
   common: {
     loading: 'Laster...',
@@ -153,7 +164,8 @@ export const nb = {
       support: 'Kundestøtte'
     },
     copyright: '© 2024 TryggLink. Alle rettigheter forbeholdt.',
-    disclaimer: 'TryggLink.no – kun en indikasjon, ikke en garanti'
+    disclaimer: 'Ved å sende inn data ovenfor, godtar du våre Tjenestevilkår og Personvernregler, og delingen av din prøveinnsending med sikkerhetsmiljøet. Ikke send inn personlig informasjon; vi er ikke ansvarlige for innholdet i din innsending.',
+    learnMore: 'Lær mer'
   }
 } as const;
 

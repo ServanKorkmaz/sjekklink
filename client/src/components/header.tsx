@@ -10,13 +10,11 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navigation = [
-    { name: nb.nav.home, href: "/" },
-    { name: nb.nav.fileScan, href: "/file-scan" },
     { name: nb.nav.dashboard, href: "/admin" },
   ];
 
   return (
-    <header className="border-b border-border bg-card">
+    <header className="border-b border-slate-700 bg-slate-800">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-3" data-testid="link-home">
           <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
