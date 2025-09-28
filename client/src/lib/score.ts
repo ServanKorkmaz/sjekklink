@@ -1,5 +1,5 @@
 import { checkGoogleSafeBrowsing } from './providers/gsb';
-import { checkPhishTank } from './providers/phishtank';
+import { checkAbuseIPDB } from './providers/abuseipdb';
 import { getWhoisData } from './providers/whois';
 import { analyzeUrlHeuristics, analyzeDomainAge } from './providers/heuristics';
 import { submitToUrlScan } from './providers/urlscan';
@@ -48,27 +48,27 @@ export async function checkUrlSafety(url: string): Promise<{
       });
     }
 
-    // PhishTank check
+    // AbuseIPDB reputation check
     try {
-      const phishResult = await checkPhishTank(url);
-      if (phishResult.isPhishing) {
-        totalScore += 70;
-        reasons.push(`Identified as phishing site: ${phishResult.details}`);
+      const abuseResult = await checkAbuseIPDB(url);
+      if (abuseResult.isAbusive) {
+        totalScore += 60;
+        reasons.push(`Flagged by IP reputation service: ${abuseResult.details}`);
         securityChecks.push({
-          name: 'PhishTank',
+          name: 'IP Reputation',
           status: 'malicious',
-          details: phishResult.details || 'Phishing detected'
+          details: abuseResult.details || 'Abusive IP detected'
         });
       } else {
         securityChecks.push({
-          name: 'PhishTank',
+          name: 'IP Reputation',
           status: 'clean',
-          details: 'Not in phishing database'
+          details: 'Clean IP reputation'
         });
       }
     } catch (error) {
       securityChecks.push({
-        name: 'PhishTank',
+        name: 'IP Reputation',
         status: 'error',
         details: 'Check failed'
       });
