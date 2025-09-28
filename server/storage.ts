@@ -1,5 +1,7 @@
-import { type User, type InsertUser, type ScanResult, type InsertScanResult, type ApiUsage, type InsertApiUsage } from "@shared/schema";
+import { type User, type InsertUser, type ScanResult, type InsertScanResult, type ApiUsage, type InsertApiUsage, users, scanResults, apiUsage } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -21,81 +23,61 @@ export interface IStorage {
   }>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private scanResults: Map<string, ScanResult>;
-  private apiUsage: Map<string, ApiUsage>;
-
-  constructor() {
-    this.users = new Map();
-    this.scanResults = new Map();
-    this.apiUsage = new Map();
-  }
+export class DatabaseStorage implements IStorage {
+  constructor() {}
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getScanResult(id: string): Promise<ScanResult | undefined> {
-    return this.scanResults.get(id);
+    const [result] = await db.select().from(scanResults).where(eq(scanResults.id, id));
+    return result || undefined;
   }
 
   async getScanResultByUrl(url: string): Promise<ScanResult | undefined> {
-    return Array.from(this.scanResults.values()).find(
-      (result) => result.url === url && result.scanType === 'url'
-    );
+    const [result] = await db.select().from(scanResults)
+      .where(and(
+        eq(scanResults.url, url),
+        eq(scanResults.scanType, 'url')
+      ));
+    return result || undefined;
   }
 
   async getScanResultByFileHash(hash: string): Promise<ScanResult | undefined> {
-    return Array.from(this.scanResults.values()).find(
-      (result) => result.fileHash === hash && result.scanType === 'file'
-    );
+    const [result] = await db.select().from(scanResults)
+      .where(and(
+        eq(scanResults.fileHash, hash),
+        eq(scanResults.scanType, 'file')
+      ));
+    return result || undefined;
   }
 
   async createScanResult(insertResult: InsertScanResult): Promise<ScanResult> {
-    const id = randomUUID();
-    const now = new Date();
-    const result: ScanResult = { 
-      ...insertResult, 
-      id, 
-      createdAt: now,
-      updatedAt: now,
-      metadata: insertResult.metadata || null
-    };
-    this.scanResults.set(id, result);
+    const [result] = await db.insert(scanResults).values(insertResult).returning();
     return result;
   }
 
   async getRecentScans(limit: number = 100): Promise<ScanResult[]> {
-    return Array.from(this.scanResults.values())
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, limit);
+    const results = await db.select().from(scanResults)
+      .orderBy(desc(scanResults.createdAt))
+      .limit(limit);
+    return results;
   }
 
   async recordApiUsage(insertUsage: InsertApiUsage): Promise<ApiUsage> {
-    const id = randomUUID();
-    const usage: ApiUsage = { 
-      ...insertUsage, 
-      id, 
-      createdAt: new Date(),
-      ipAddress: insertUsage.ipAddress || null,
-      userAgent: insertUsage.userAgent || null,
-      requestCount: insertUsage.requestCount || 1
-    };
-    this.apiUsage.set(id, usage);
+    const [usage] = await db.insert(apiUsage).values(insertUsage).returning();
     return usage;
   }
 
@@ -105,7 +87,7 @@ export class MemStorage implements IStorage {
     errorRate: number;
     activeUsers: number;
   }> {
-    const scans = Array.from(this.scanResults.values());
+    const scans = await db.select().from(scanResults);
     const totalScans = scans.length;
     const maliciousCount = scans.filter(s => s.verdict === 'malicious').length;
     
@@ -118,4 +100,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
