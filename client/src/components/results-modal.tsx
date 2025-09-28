@@ -13,6 +13,7 @@ import {
   ListChecks,
   Info
 } from "lucide-react";
+import { nb } from "@/lib/i18n/nb";
 import type { ScanResult } from "@/lib/types";
 
 interface ResultsModalProps {
@@ -90,8 +91,11 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                     {getVerdictIcon(result.verdict)}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold capitalize" data-testid="text-verdict">
-                      {result.verdict}
+                    <h2 className="text-2xl font-bold" data-testid="text-verdict">
+                      {result.verdict === 'safe' ? nb.urlScanner.verdict.safe : 
+                       result.verdict === 'suspicious' ? nb.urlScanner.verdict.suspicious :
+                       result.verdict === 'malicious' ? nb.urlScanner.verdict.malicious :
+                       result.verdict}
                     </h2>
                     <p className="text-white/90 break-all" data-testid="text-scanned-url">
                       {result.url || result.fileName}
@@ -102,7 +106,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                   <div className="text-3xl font-bold" data-testid="text-risk-score">
                     {result.riskScore}
                   </div>
-                  <div className="text-sm text-white/90">Risk Score</div>
+                  <div className="text-sm text-white/90">{nb.results.riskScore}</div>
                 </div>
               </div>
             </CardHeader>
@@ -114,7 +118,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                 <div>
                   <h3 className="text-lg font-semibold mb-4 flex items-center">
                     <ListChecks className="text-primary mr-2 h-5 w-5" />
-                    Security Checks
+                    {nb.results.securityChecks}
                   </h3>
                   <div className="space-y-3">
                     {result.securityChecks?.map((check, index) => (
@@ -139,25 +143,25 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                 <div>
                   <h3 className="text-lg font-semibold mb-4 flex items-center">
                     <Info className="text-primary mr-2 h-5 w-5" />
-                    {result.scanType === 'url' ? 'Domain Information' : 'File Information'}
+                    {result.scanType === 'url' ? nb.results.domainInformation : nb.results.fileInformation}
                   </h3>
                   <div className="space-y-4">
                     {result.domainInfo && (
                       <>
                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">Registrar</div>
+                          <div className="text-sm text-muted-foreground mb-1">{nb.results.registrar}</div>
                           <div className="font-medium" data-testid="text-registrar">
                             {result.domainInfo.registrar}
                           </div>
                         </div>
                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">IP Address</div>
+                          <div className="text-sm text-muted-foreground mb-1">{nb.results.ipAddress}</div>
                           <div className="font-medium font-mono" data-testid="text-ip">
                             {result.domainInfo.ip}
                           </div>
                         </div>
                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">Country</div>
+                          <div className="text-sm text-muted-foreground mb-1">{nb.results.country}</div>
                           <div className="font-medium" data-testid="text-country">
                             {result.domainInfo.country}
                           </div>
@@ -167,15 +171,15 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                     {result.scanType === 'file' && (
                       <>
                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">File Size</div>
+                          <div className="text-sm text-muted-foreground mb-1">{nb.results.fileSize}</div>
                           <div className="font-medium" data-testid="text-file-size">
-                            {result.fileSize ? `${(result.fileSize / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}
+                            {result.fileSize ? `${(result.fileSize / 1024 / 1024).toFixed(2)} MB` : nb.common.unknown}
                           </div>
                         </div>
                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="text-sm text-muted-foreground mb-1">File Hash</div>
+                          <div className="text-sm text-muted-foreground mb-1">{nb.results.fileHash}</div>
                           <div className="font-medium font-mono text-xs break-all" data-testid="text-file-hash">
-                            {result.metadata?.hash || 'Unknown'}
+                            {result.metadata?.hash || nb.common.unknown}
                           </div>
                         </div>
                       </>
@@ -187,7 +191,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
               {/* Reasons */}
               {result.reasons.length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold mb-4">Analysis Details</h3>
+                  <h3 className="text-lg font-semibold mb-4">{nb.results.analysisDetails}</h3>
                   <ul className="space-y-2">
                     {result.reasons.map((reason, index) => (
                       <li 
@@ -212,7 +216,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                     data-testid="button-visit-site"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Visit Site
+                    {nb.results.visitSite}
                   </Button>
                 )}
                 <Button 
@@ -221,7 +225,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                   data-testid="button-report-false-positive"
                 >
                   <Flag className="mr-2 h-4 w-4" />
-                  Report False Positive
+                  {nb.results.reportFalsePositive}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -229,7 +233,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
                   data-testid="button-close"
                 >
                   <X className="mr-2 h-4 w-4" />
-                  Close
+                  {nb.common.close}
                 </Button>
               </div>
             </CardContent>
@@ -239,7 +243,7 @@ export function ResultsModal({ result, onClose }: ResultsModalProps) {
           <Alert className="mt-6 border-amber-200 bg-amber-50">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-800">
-              <strong>Disclaimer:</strong> TryggLink provides an indication only. Not legal proof. If you suspect fraud, contact your bank/police.
+              <strong>Ansvarsfraskrivelse:</strong> {nb.results.disclaimer}
             </AlertDescription>
           </Alert>
         </div>

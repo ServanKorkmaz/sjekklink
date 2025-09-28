@@ -1,55 +1,35 @@
-// AbuseIPDB integration for IP and domain reputation checking
+// Client-side API call to server's AbuseIPDB endpoint
 export async function checkAbuseIPDB(url: string): Promise<{
   isAbusive: boolean;
   confidencePercentage?: number;
   details?: string;
+  available: boolean;
 }> {
-  const apiKey = process.env.ABUSEIPDB_API_KEY || '';
-  
-  if (!apiKey) {
-    console.warn('AbuseIPDB API key not configured');
-    return { isAbusive: false };
-  }
-
   try {
-    // Extract domain from URL
-    const urlObj = new URL(url);
-    const domain = urlObj.hostname;
-
-    // Check domain reputation
-    const response = await fetch('https://api.abuseipdb.com/api/v2/check', {
-      method: 'GET',
+    const response = await fetch('/api/check-reputation', {
+      method: 'POST',
       headers: {
-        'Key': apiKey,
-        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams({
-        ipAddress: domain,
-        maxAgeInDays: '90',
-        verbose: ''
-      })
+      body: JSON.stringify({ url })
     });
 
     if (!response.ok) {
-      throw new Error(`AbuseIPDB API error: ${response.status}`);
+      throw new Error(`Server error: ${response.status}`);
     }
 
     const data = await response.json();
-    
-    if (data.data && data.data.abuseConfidencePercentage > 25) {
-      return {
-        isAbusive: true,
-        confidencePercentage: data.data.abuseConfidencePercentage,
-        details: `Abuse confidence: ${data.data.abuseConfidencePercentage}%`
-      };
-    }
-
-    return { 
-      isAbusive: false, 
-      confidencePercentage: data.data?.abuseConfidencePercentage || 0 
+    return {
+      isAbusive: data.isAbusive || false,
+      confidencePercentage: data.confidencePercentage,
+      details: data.details,
+      available: data.available !== false // Default to true if not specified
     };
   } catch (error) {
     console.error('AbuseIPDB check failed:', error);
-    return { isAbusive: false }; // Fail open
+    return { 
+      isAbusive: false, 
+      available: false 
+    };
   }
 }

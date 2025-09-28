@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertScanResultSchema, insertApiUsageSchema } from "@shared/schema";
 import { z } from "zod";
-import { checkUrlSafety } from "../client/src/lib/score.js";
+import { checkUrlSafetyServer } from "./lib/score";
+import { checkAbuseIPDB } from "./lib/abuseipdb";
 import crypto from "crypto";
 
 // Rate limiting store
@@ -62,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Perform URL safety check
-      const result = await checkUrlSafety(url);
+      const result = await checkUrlSafetyServer(url);
       
       // Store result
       const scanResult = await storage.createScanResult({
@@ -132,6 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('File scan error:', error);
       res.status(400).json({ 
         error: error instanceof Error ? error.message : 'File scan failed' 
+      });
+    }
+  });
+
+  // AbuseIPDB reputation check endpoint
+  app.post("/api/check-reputation", async (req, res) => {
+    try {
+      const { url } = z.object({ url: z.string().url() }).parse(req.body);
+      const result = await checkAbuseIPDB(url);
+      res.json(result);
+    } catch (error) {
+      console.error('Reputation check failed:', error);
+      res.status(500).json({ 
+        isAbusive: false, 
+        available: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

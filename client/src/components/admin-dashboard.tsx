@@ -14,6 +14,8 @@ import {
   ArrowDown
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { nb as nbLocale } from "date-fns/locale";
+import { nb } from "@/lib/i18n/nb";
 import type { ScanResult } from "@/lib/types";
 
 export function AdminDashboard() {
@@ -35,11 +37,11 @@ export function AdminDashboard() {
   const getVerdictBadge = (verdict: string) => {
     switch (verdict) {
       case 'safe':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Safe</Badge>;
+        return <Badge variant="default" className="bg-green-100 text-green-800">{nb.status.clean}</Badge>;
       case 'suspicious':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Suspicious</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{nb.status.suspicious}</Badge>;
       case 'malicious':
-        return <Badge variant="destructive">Malicious</Badge>;
+        return <Badge variant="destructive">{nb.status.malicious}</Badge>;
       default:
         return <Badge variant="outline">{verdict}</Badge>;
     }
@@ -47,7 +49,7 @@ export function AdminDashboard() {
 
   const formatTimeAgo = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return formatDistanceToNow(dateObj, { addSuffix: true });
+    return formatDistanceToNow(dateObj, { addSuffix: true, locale: nbLocale });
   };
 
   return (
@@ -56,17 +58,17 @@ export function AdminDashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold text-foreground">Admin Dashboard</h2>
-              <p className="text-muted-foreground mt-2">Monitor scan activity and system health</p>
+              <h2 className="text-3xl font-bold text-foreground">{nb.admin.title}</h2>
+              <p className="text-muted-foreground mt-2">{nb.admin.description}</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" data-testid="button-export">
                 <Download className="mr-2 h-4 w-4" />
-                Export Data
+                {nb.admin.exportData}
               </Button>
               <Button onClick={handleRefresh} data-testid="button-refresh">
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh
+                {nb.admin.refresh}
               </Button>
             </div>
           </div>
@@ -77,7 +79,7 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Scans</p>
+                    <p className="text-sm font-medium text-muted-foreground">{nb.admin.stats.totalScans}</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-total-scans">
                       {(stats as any)?.totalScans?.toLocaleString() || '0'}
                     </p>
@@ -88,7 +90,7 @@ export function AdminDashboard() {
                 </div>
                 <p className="text-xs text-green-600 mt-2">
                   <ArrowUp className="inline h-3 w-3 mr-1" />
-                  +12% from last week
+                  {nb.trends.increaseArrow}12% {nb.trends.fromLastWeek}
                 </p>
               </CardContent>
             </Card>
@@ -97,7 +99,7 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Malicious Detected</p>
+                    <p className="text-sm font-medium text-muted-foreground">{nb.admin.stats.maliciousDetected}</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-malicious-count">
                       {(stats as any)?.maliciousCount?.toLocaleString() || '0'}
                     </p>
@@ -108,7 +110,7 @@ export function AdminDashboard() {
                 </div>
                 <p className="text-xs text-destructive mt-2">
                   <ArrowUp className="inline h-3 w-3 mr-1" />
-                  +3% from last week
+                  {nb.trends.increaseArrow}3% {nb.trends.fromLastWeek}
                 </p>
               </CardContent>
             </Card>
@@ -117,7 +119,7 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
+                    <p className="text-sm font-medium text-muted-foreground">{nb.admin.stats.errorRate}</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-error-rate">
                       {(stats as any)?.errorRate?.toFixed(1) || '0.0'}%
                     </p>
@@ -128,7 +130,7 @@ export function AdminDashboard() {
                 </div>
                 <p className="text-xs text-green-600 mt-2">
                   <ArrowDown className="inline h-3 w-3 mr-1" />
-                  -0.4% from last week
+                  {nb.trends.decreaseArrow}0.4% {nb.trends.fromLastWeek}
                 </p>
               </CardContent>
             </Card>
@@ -137,7 +139,7 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                    <p className="text-sm font-medium text-muted-foreground">{nb.admin.stats.activeUsers}</p>
                     <p className="text-2xl font-bold text-foreground" data-testid="stat-active-users">
                       {(stats as any)?.activeUsers?.toLocaleString() || '0'}
                     </p>
@@ -148,7 +150,7 @@ export function AdminDashboard() {
                 </div>
                 <p className="text-xs text-green-600 mt-2">
                   <ArrowUp className="inline h-3 w-3 mr-1" />
-                  +8% from last week
+                  {nb.trends.increaseArrow}8% {nb.trends.fromLastWeek}
                 </p>
               </CardContent>
             </Card>
@@ -157,19 +159,19 @@ export function AdminDashboard() {
           {/* Recent Scans Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Scans</CardTitle>
+              <CardTitle>{nb.admin.recentScans}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Timestamp</TableHead>
-                      <TableHead>URL/File</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Result</TableHead>
-                      <TableHead>Score</TableHead>
-                      <TableHead>Action</TableHead>
+                      <TableHead>Tidsstempel</TableHead>
+                      <TableHead>URL/Fil</TableHead>
+                      <TableHead>{nb.common.type}</TableHead>
+                      <TableHead>{nb.common.result}</TableHead>
+                      <TableHead>{nb.common.score}</TableHead>
+                      <TableHead>{nb.common.action}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -200,7 +202,7 @@ export function AdminDashboard() {
                             size="sm"
                             data-testid={`button-view-details-${scan.id}`}
                           >
-                            View Details
+                            {nb.admin.viewDetails}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -208,7 +210,7 @@ export function AdminDashboard() {
                     {(!recentScans || recentScans.length === 0) && (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                          No recent scans found
+                          {nb.errors.noRecentScans}
                         </TableCell>
                       </TableRow>
                     )}

@@ -1,19 +1,20 @@
 import { Shield } from "lucide-react";
 import { FaTwitter, FaGithub, FaLinkedin } from "react-icons/fa";
+import { nb } from "@/lib/i18n/nb";
 
 export function Footer() {
   const productLinks = [
-    { name: "URL Scanner", href: "#" },
-    { name: "File Scanner", href: "#" },
-    { name: "API Access", href: "#" },
-    { name: "Enterprise", href: "#" },
+    { name: nb.footer.productLinks.urlScanner, href: "#" },
+    { name: nb.footer.productLinks.fileScanner, href: "#" },
+    { name: nb.footer.productLinks.apiAccess, href: "#" },
+    { name: nb.footer.productLinks.enterprise, href: "#" },
   ];
 
   const legalLinks = [
-    { name: "Privacy Policy", href: "#" },
-    { name: "Terms of Service", href: "#" },
-    { name: "Contact", href: "#" },
-    { name: "Support", href: "#" },
+    { name: nb.footer.legalLinks.privacyPolicy, href: "#" },
+    { name: nb.footer.legalLinks.termsOfService, href: "#" },
+    { name: nb.footer.legalLinks.contact, href: "#" },
+    { name: nb.footer.legalLinks.support, href: "#" },
   ];
 
   return (
@@ -27,12 +28,12 @@ export function Footer() {
                 <Shield className="text-white text-lg" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-foreground">TryggLink</h3>
-                <p className="text-xs text-muted-foreground">Security Scanner</p>
+                <h3 className="text-xl font-bold text-foreground">{nb.appName}</h3>
+                <p className="text-xs text-muted-foreground">{nb.tagline}</p>
               </div>
             </div>
             <p className="text-muted-foreground mb-4 max-w-md">
-              Protecting users from malicious URLs and files with comprehensive security analysis and real-time threat detection.
+              {nb.footer.description}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-muted-foreground hover:text-primary transition-colors" data-testid="link-twitter">
@@ -49,7 +50,7 @@ export function Footer() {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Product</h4>
+            <h4 className="font-semibold text-foreground mb-4">{nb.footer.product}</h4>
             <ul className="space-y-2">
               {productLinks.map((link) => (
                 <li key={link.name}>
@@ -67,7 +68,7 @@ export function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Legal</h4>
+            <h4 className="font-semibold text-foreground mb-4">{nb.footer.legal}</h4>
             <ul className="space-y-2">
               {legalLinks.map((link) => (
                 <li key={link.name}>
@@ -86,7 +87,8 @@ export function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-muted-foreground text-sm">
-            © 2024 TryggLink. All rights reserved. Security indications only - not legal proof.
+            {nb.footer.copyright}<br/>
+            {nb.footer.disclaimer}
           </p>
         </div>
       </div>

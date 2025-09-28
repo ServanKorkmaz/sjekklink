@@ -3,15 +3,16 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Shield } from "lucide-react";
+import { nb } from "@/lib/i18n/nb";
 
 export function Header() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
   const navigation = [
-    { name: "Home", href: "/" },
-    { name: "File Scan", href: "/file-scan" },
-    { name: "Dashboard", href: "/admin" },
+    { name: nb.nav.home, href: "/" },
+    { name: nb.nav.fileScan, href: "/file-scan" },
+    { name: nb.nav.dashboard, href: "/admin" },
   ];
 
   return (
@@ -22,8 +23,8 @@ export function Header() {
             <Shield className="text-white text-lg" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">TryggLink</h1>
-            <p className="text-xs text-muted-foreground">Security Scanner</p>
+            <h1 className="text-xl font-bold text-foreground">{nb.appName}</h1>
+            <p className="text-xs text-muted-foreground">{nb.tagline}</p>
           </div>
         </Link>
 
@@ -41,7 +42,7 @@ export function Header() {
               {item.name}
             </Link>
           ))}
-          <Button data-testid="button-sign-in">Sign In</Button>
+          <Button data-testid="button-sign-in">{nb.nav.signIn}</Button>
         </nav>
 
         {/* Mobile Navigation */}
@@ -67,7 +68,7 @@ export function Header() {
                 </Link>
               ))}
               <Button className="mt-4" data-testid="mobile-button-sign-in">
-                Sign In
+                {nb.nav.signIn}
               </Button>
             </nav>
           </SheetContent>
