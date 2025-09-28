@@ -72,7 +72,8 @@ export class MemStorage implements IStorage {
       ...insertResult, 
       id, 
       createdAt: now,
-      updatedAt: now 
+      updatedAt: now,
+      metadata: insertResult.metadata || null
     };
     this.scanResults.set(id, result);
     return result;
@@ -89,7 +90,10 @@ export class MemStorage implements IStorage {
     const usage: ApiUsage = { 
       ...insertUsage, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      ipAddress: insertUsage.ipAddress || null,
+      userAgent: insertUsage.userAgent || null,
+      requestCount: insertUsage.requestCount || 1
     };
     this.apiUsage.set(id, usage);
     return usage;

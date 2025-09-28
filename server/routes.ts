@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertScanResultSchema, insertApiUsageSchema } from "@shared/schema";
 import { z } from "zod";
-import { checkUrlSafety } from "../client/src/lib/score";
+import { checkUrlSafety } from "../client/src/lib/score.js";
 import crypto from "crypto";
 
 // Rate limiting store
