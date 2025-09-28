@@ -10,10 +10,11 @@ import { Progress } from "@/components/ui/progress";
 import { Search, Shield, Database, Globe } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { nb } from "@/lib/i18n/nb";
 import type { ScanResult } from "@/lib/types";
 
 const urlSchema = z.object({
-  url: z.string().url("Please enter a valid URL"),
+  url: z.string().url(nb.errors.invalidUrl),
 });
 
 type UrlFormData = z.infer<typeof urlSchema>;
@@ -60,7 +61,7 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
     onError: (error: Error) => {
       setProgress(0);
       toast({
-        title: "Scan Failed",
+        title: nb.errors.scanFailed,
         description: error.message,
         variant: "destructive",
       });
@@ -76,11 +77,11 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
       <div className="container mx-auto px-4 text-center">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Check if a link is safe<br />
-            <span className="text-primary">before you click</span>
+            {nb.urlScanner.title}<br />
+            <span className="text-primary">{nb.urlScanner.titleHighlight}</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Get instant security assessments for URLs and files. Results are indicators — always use common sense.
+            {nb.urlScanner.description}
           </p>
           
           {/* URL Input Form */}
@@ -95,7 +96,7 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
                       <FormItem className="flex-1">
                         <FormControl>
                           <Input
-                            placeholder="https://example.com/suspicious-link"
+                            placeholder={nb.urlScanner.placeholder}
                             {...field}
                             data-testid="input-url"
                             disabled={scanMutation.isPending}
@@ -111,7 +112,7 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
                     data-testid="button-check-url"
                   >
                     <Search className="mr-2 h-4 w-4" />
-                    Check Now
+                    {nb.urlScanner.scanButton}
                   </Button>
                 </div>
                 
@@ -120,7 +121,7 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
                   <div className="space-y-3" data-testid="loading-state">
                     <div className="flex items-center justify-center space-x-2 text-muted-foreground">
                       <Search className="h-4 w-4 animate-spin" />
-                      <span>Analyzing URL security...</span>
+                      <span>{nb.urlScanner.scanning}</span>
                     </div>
                     <Progress value={progress} className="w-full" />
                   </div>
@@ -133,15 +134,15 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto text-sm text-muted-foreground">
             <div className="flex items-center justify-center space-x-2">
               <Shield className="text-primary h-4 w-4" />
-              <span>Google Safe Browsing</span>
+              <span>{nb.securityChecks.googleSafeBrowsing}</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
               <Database className="text-primary h-4 w-4" />
-              <span>PhishTank Database</span>
+              <span>{nb.securityChecks.ipReputation}</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
               <Globe className="text-primary h-4 w-4" />
-              <span>Domain Analysis</span>
+              <span>{nb.securityChecks.domainAnalysis}</span>
             </div>
           </div>
         </div>

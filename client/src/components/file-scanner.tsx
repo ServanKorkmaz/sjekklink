@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Upload, CloudUpload, File } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { nb } from "@/lib/i18n/nb";
 import type { ScanResult } from "@/lib/types";
 
 interface FileScannerProps {
@@ -38,7 +39,7 @@ export function FileScanner({ onResult }: FileScannerProps) {
             reject(error);
           }
         };
-        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.onerror = () => reject(new Error(nb.errors.uploadFailed));
         reader.readAsArrayBuffer(file);
       });
     },
@@ -66,7 +67,7 @@ export function FileScanner({ onResult }: FileScannerProps) {
       setProgress(0);
       setSelectedFile(null);
       toast({
-        title: "Scan Failed",
+        title: nb.errors.scanFailed,
         description: error.message,
         variant: "destructive",
       });
@@ -76,8 +77,8 @@ export function FileScanner({ onResult }: FileScannerProps) {
   const handleFileSelect = useCallback((file: File) => {
     if (file.size > 32 * 1024 * 1024) { // 32MB limit
       toast({
-        title: "File Too Large",
-        description: "Please select a file smaller than 32MB",
+        title: nb.errors.fileTooBig,
+        description: nb.errors.fileTooLargeDescription,
         variant: "destructive",
       });
       return;
@@ -110,10 +111,10 @@ export function FileScanner({ onResult }: FileScannerProps) {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Scan Files for Malware
+            {nb.fileScanner.title}
           </h2>
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Upload files to check for viruses, trojans, and other malicious software using multiple security engines.
+            {nb.fileScanner.description}
           </p>
 
           {/* File Upload Area */}
@@ -137,10 +138,10 @@ export function FileScanner({ onResult }: FileScannerProps) {
                   <CloudUpload className="text-3xl text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">
-                  Drag a file here or choose from disk
+                  {nb.fileScanner.dropZoneText}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Support for .exe, .zip, .pdf, .docx and other file types (Max 32MB)
+                  {nb.fileScanner.supportedTypes} ({nb.fileScanner.maxSize})
                 </p>
                 
                 <input 
@@ -159,7 +160,7 @@ export function FileScanner({ onResult }: FileScannerProps) {
                   >
                     <span className="cursor-pointer">
                       <Upload className="mr-2 h-4 w-4" />
-                      Choose File
+                      {nb.fileScanner.uploadButton}
                     </span>
                   </Button>
                 </label>
@@ -175,7 +176,7 @@ export function FileScanner({ onResult }: FileScannerProps) {
                           <File className="h-4 w-4" />
                           <span className="text-sm font-medium">{selectedFile.name}</span>
                         </div>
-                        <span className="text-sm text-muted-foreground">Scanning...</span>
+                        <span className="text-sm text-muted-foreground">{nb.fileScanner.scanning}</span>
                       </div>
                       <Progress value={progress} className="w-full" />
                     </CardContent>

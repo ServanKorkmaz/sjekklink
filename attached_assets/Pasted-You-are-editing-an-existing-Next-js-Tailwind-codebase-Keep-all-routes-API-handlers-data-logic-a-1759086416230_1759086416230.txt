@@ -1,0 +1,51 @@
+You are editing an existing Next.js + Tailwind codebase. Keep all routes, API handlers, data logic and filenames intact. Make a UI-only refactor to achieve a clean, trustworthy dark interface similar to VirusTotal, but WITHOUT the “Search” section.
+
+Scope:
+- UI ONLY. Do not change business logic, API calls, DB code, or route structure.
+- Keep component imports/exports compatible. Avoid breaking props.
+- Keep existing page URLs the same.
+
+Design requirements:
+- Dark theme with subtle blue accents, rounded corners (Tailwind), generous spacing, focus states, and accessible contrast.
+- Centered main card on desktop, full-width on mobile. Responsive and keyboard-accessible.
+- Top tab bar with exactly two tabs: **“URL”** and **“Fil”**. No third tab.
+  - URL tab: label = “Lim inn en lenke for å sjekke om den er trygg”, input placeholder = “https://…”, primary button = “Sjekk nå”.
+  - Fil tab: drag-and-drop area with text = “Last opp en fil for å skanne”, secondary button = “Velg fil”.
+- Allow swipe/gesture switching between tabs on mobile (e.g., using pointer/touch events). Also support keyboard switching (Left/Right).
+- Remove any “Search” UI/section completely.
+- Footer text (centered, small): “TryggLink.no – kun en indikasjon, ikke en garanti”.
+
+Copy & localization:
+- All visible UI text MUST be Norwegian. Code/comments can stay in English.
+- Create a simple i18n map (e.g., /lib/i18n/nb.ts) and read strings from there so text is centralized.
+
+Components to (re)structure (non-breaking):
+- <Tabs> (URL/Fil) with ARIA attributes, focus ring, and swipe support.
+- <UrlForm> (input + “Sjekk nå” button) – DO NOT change its submit handler signature.
+- <FileDropzone> (drag & drop + “Velg fil”) – keep the onChange/onDrop shape intact.
+- <ResultCard> placeholder styles only (do not change its props).
+- <Header> with simple logo/wordmark and <Footer> with disclaimer.
+
+Tailwind:
+- Use utility classes only. Do not introduce CSS frameworks beyond Tailwind.
+- Add color tokens via tailwind.config if needed (dark bg, subtle blue accent).
+
+Accessibility:
+- Proper labels/aria-* for inputs and tabs.
+- Visible focus states.
+- Tab order must be logical.
+
+Deliverables:
+- Updated components/pages with the new dark UI.
+- New Tabs component with keyboard + swipe support.
+- nb.ts file with Norwegian strings used across the UI.
+- No TypeScript errors, no prop/route breaking changes.
+
+Acceptance criteria:
+- App renders with a VirusTotal-like dark look.
+- Exactly two tabs (URL/Fil) and they are switchable by click, keyboard, and swipe.
+- All visible strings are Norwegian.
+- “Search” UI is gone.
+- Existing URL and file submit handlers continue to work as before.
+
+Make a single commit titled: “feat(ui): VirusTotal-like dark theme with URL/Fil tabs (no search), Norwegian copy”

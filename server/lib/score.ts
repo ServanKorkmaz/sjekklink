@@ -1,11 +1,12 @@
-import { checkGoogleSafeBrowsing } from './providers/gsb';
-import { checkAbuseIPDB } from './providers/abuseipdb';
-import { getWhoisData } from './providers/whois';
-import { analyzeUrlHeuristics, analyzeDomainAge } from './providers/heuristics';
-import { submitToUrlScan } from './providers/urlscan';
-import type { SecurityCheck, DomainInfo } from './types';
+// Server-side URL scoring with direct provider integration
+import { checkGoogleSafeBrowsing } from '../../client/src/lib/providers/gsb';
+import { checkAbuseIPDB } from './abuseipdb';
+import { getWhoisData } from '../../client/src/lib/providers/whois';
+import { analyzeUrlHeuristics, analyzeDomainAge } from '../../client/src/lib/providers/heuristics';
+import { submitToUrlScan } from '../../client/src/lib/providers/urlscan';
+import type { SecurityCheck, DomainInfo } from '../../client/src/lib/types';
 
-export async function checkUrlSafety(url: string): Promise<{
+export async function checkUrlSafetyServer(url: string): Promise<{
   riskScore: number;
   verdict: 'safe' | 'suspicious' | 'malicious';
   reasons: string[];
@@ -21,8 +22,6 @@ export async function checkUrlSafety(url: string): Promise<{
   try {
     const urlObj = new URL(url);
     const domain = urlObj.hostname;
-
-    // GSB check is now handled above with API availability tracking
 
     // Track external API availability
     let gsbWorking = false;
@@ -55,7 +54,7 @@ export async function checkUrlSafety(url: string): Promise<{
       });
     }
 
-    // AbuseIPDB reputation check
+    // AbuseIPDB reputation check (server-side)
     try {
       const abuseResult = await checkAbuseIPDB(url);
       abuseIpDbWorking = abuseResult.available;
@@ -136,8 +135,8 @@ export async function checkUrlSafety(url: string): Promise<{
     if (heuristicResult.flags.length > 0) {
       securityChecks.push({
         name: 'Heuristic Analysis',
-        status: heuristicResult.score > 30 ? 'suspicious' : 'clean',
-        details: `${heuristicResult.flags.length} suspicious patterns detected`
+        status: adjustedHeuristicScore > 30 ? 'suspicious' : 'clean',
+        details: `${heuristicResult.flags.length} suspicious patterns detected${!externalApiWorking ? ' (enhanced weighting applied)' : ''}`
       });
     } else {
       securityChecks.push({

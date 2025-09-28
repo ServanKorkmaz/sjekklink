@@ -47,17 +47,56 @@ export function analyzeUrlHeuristics(url: string): {
     }
     
     // Check for known suspicious TLDs
-    const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.click', '.download'];
+    const suspiciousTlds = ['.tk', '.ml', '.ga', '.cf', '.click', '.download', '.top', '.bid', '.loan', '.win', '.racing'];
     if (suspiciousTlds.some(tld => urlObj.hostname.endsWith(tld))) {
-      score += 20;
+      score += 25;
       flags.push('Uses suspicious top-level domain');
     }
     
-    // Check for URL shorteners
-    const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly'];
-    if (shorteners.some(shortener => urlObj.hostname.includes(shortener))) {
+    // Check for suspicious keywords in domain
+    const suspiciousKeywords = ['secure', 'verify', 'account', 'update', 'confirm', 'suspended', 'locked', 'urgent'];
+    const domainLower = urlObj.hostname.toLowerCase();
+    if (suspiciousKeywords.some(keyword => domainLower.includes(keyword))) {
+      score += 15;
+      flags.push('Domain contains suspicious security-related keywords');
+    }
+    
+    // Check for homograph attacks (mixed character sets)
+    if (/[а-я]/.test(urlObj.hostname) || /[α-ω]/.test(urlObj.hostname)) {
+      score += 20;
+      flags.push('Domain uses non-Latin characters (potential homograph attack)');
+    }
+    
+    // Check for excessive hyphens or numbers
+    const hyphenCount = (urlObj.hostname.match(/-/g) || []).length;
+    const numberCount = (urlObj.hostname.match(/\d/g) || []).length;
+    if (hyphenCount > 3) {
       score += 10;
-      flags.push('URL shortener detected');
+      flags.push('Domain contains excessive hyphens');
+    }
+    if (numberCount > 4) {
+      score += 10;
+      flags.push('Domain contains excessive numbers');
+    }
+    
+    // Check for URL shorteners
+    const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'is.gd', 'buff.ly', 'short.link'];
+    if (shorteners.some(shortener => urlObj.hostname.includes(shortener))) {
+      score += 15;
+      flags.push('URL shortener detected - cannot verify final destination');
+    }
+    
+    // Check path for suspicious patterns
+    const path = urlObj.pathname + urlObj.search;
+    if (/(\.exe|\.zip|\.rar|\.bat|\.cmd|\.scr)$/i.test(path)) {
+      score += 30;
+      flags.push('URL leads to executable file download');
+    }
+    
+    if (/password|login|signin|account/.test(path.toLowerCase())) {
+      // This could be legitimate, so lower score
+      score += 5;
+      flags.push('URL contains login/password related path');
     }
     
   } catch (error) {
