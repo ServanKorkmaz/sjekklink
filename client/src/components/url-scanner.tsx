@@ -73,80 +73,70 @@ export function UrlScanner({ onResult }: UrlScannerProps) {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-background to-muted">
-      <div className="container mx-auto px-4 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-            {nb.urlScanner.title}<br />
-            <span className="text-primary">{nb.urlScanner.titleHighlight}</span>
-          </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            {nb.urlScanner.description}
-          </p>
-          
-          {/* URL Input Form */}
-          <div className="bg-card rounded-xl shadow-lg border border-border p-8 max-w-2xl mx-auto mb-8">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <FormField
-                    control={form.control}
-                    name="url"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Input
-                            placeholder={nb.urlScanner.placeholder}
-                            {...field}
-                            data-testid="input-url"
-                            disabled={scanMutation.isPending}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button 
-                    type="submit"
-                    disabled={scanMutation.isPending}
-                    data-testid="button-check-url"
-                  >
-                    <Search className="mr-2 h-4 w-4" />
-                    {nb.urlScanner.scanButton}
-                  </Button>
-                </div>
-                
-                {/* Loading State */}
-                {scanMutation.isPending && (
-                  <div className="space-y-3" data-testid="loading-state">
-                    <div className="flex items-center justify-center space-x-2 text-muted-foreground">
-                      <Search className="h-4 w-4 animate-spin" />
-                      <span>{nb.urlScanner.scanning}</span>
-                    </div>
-                    <Progress value={progress} className="w-full" />
-                  </div>
+    <div className="w-full space-y-6" data-testid="url-scanner">
+      {/* URL Input Form */}
+      <div className="text-center">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex flex-col gap-4">
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder={nb.main.urlPlaceholder}
+                        {...field}
+                        data-testid="input-url"
+                        disabled={scanMutation.isPending}
+                        className="bg-slate-700 border-slate-600 text-white placeholder-slate-400 h-12 text-center text-lg"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </form>
-            </Form>
-          </div>
+              />
+              <Button 
+                type="submit"
+                disabled={scanMutation.isPending}
+                data-testid="button-check-url"
+                className="bg-blue-500 hover:bg-blue-600 text-white h-12 text-lg font-semibold"
+              >
+                <Search className="mr-2 h-5 w-5" />
+                {nb.main.analyzeButton}
+              </Button>
+            </div>
+            
+            {/* Loading State */}
+            {scanMutation.isPending && (
+              <div className="space-y-3" data-testid="loading-state">
+                <div className="flex items-center justify-center space-x-2 text-slate-300">
+                  <Search className="h-4 w-4 animate-spin" />
+                  <span>{nb.urlScanner.scanning}</span>
+                </div>
+                <Progress value={progress} className="w-full" />
+              </div>
+            )}
+          </form>
+        </Form>
+      </div>
 
-          {/* Trust Indicators */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto text-sm text-muted-foreground">
-            <div className="flex items-center justify-center space-x-2">
-              <Shield className="text-primary h-4 w-4" />
-              <span>{nb.securityChecks.googleSafeBrowsing}</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2">
-              <Database className="text-primary h-4 w-4" />
-              <span>{nb.securityChecks.ipReputation}</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2">
-              <Globe className="text-primary h-4 w-4" />
-              <span>{nb.securityChecks.domainAnalysis}</span>
-            </div>
-          </div>
+      {/* Trust Indicators */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-400">
+        <div className="flex items-center justify-center space-x-2">
+          <Shield className="text-blue-400 h-4 w-4" />
+          <span>{nb.securityChecks.googleSafeBrowsing}</span>
+        </div>
+        <div className="flex items-center justify-center space-x-2">
+          <Database className="text-blue-400 h-4 w-4" />
+          <span>{nb.securityChecks.ipReputation}</span>
+        </div>
+        <div className="flex items-center justify-center space-x-2">
+          <Globe className="text-blue-400 h-4 w-4" />
+          <span>{nb.securityChecks.domainAnalysis}</span>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
