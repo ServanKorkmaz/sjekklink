@@ -58,7 +58,17 @@ export const nb = {
     recentScans: 'Nylige skanninger',
     exportData: 'Eksporter data',
     refresh: 'Oppdater',
-    viewDetails: 'Vis detaljer'
+    viewDetails: 'Vis detaljer',
+    authGate: {
+      title: 'Admin Dashboard',
+      subtitle: 'Sikker tilgang kreves',
+      description: 'Lag en bruker for å få tilgang til administrasjons-dashboardet. Du kan administrere skanninger, se statistikk og overvåke systemhelse.',
+      createAccountButton: 'Lag bruker / Logg inn',
+      alreadyHaveAccount: 'Har du allerede en konto?',
+      loginLink: 'Logg inn her',
+      securityBadge: 'Sikker pålogging med Replit Auth',
+      helpText: 'Ved å logge inn får du tilgang til alle adminfunksjoner'
+    }
   },
 
   // Security Checks
