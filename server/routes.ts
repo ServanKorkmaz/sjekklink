@@ -117,10 +117,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/scan-file", upload.single('file'), async (req, res) => {
     try {
       const file = req.file;
-      const fileName = req.body.fileName || file?.originalname;
+      if (!file) {
+        return res.status(400).json({ error: 'File required' });
+      }
       
-      if (!file || !fileName) {
-        return res.status(400).json({ error: 'File and filename required' });
+      // Sanitize filename - remove path traversal and dangerous characters
+      let fileName = req.body.fileName || file.originalname;
+      fileName = fileName
+        .replace(/\.\./g, '')  // Remove path traversal
+        .replace(/[<>:"|?*]/g, '')  // Remove dangerous chars
+        .replace(/^\/+/, '')  // Remove leading slashes
+        .substring(0, 255);  // Limit length
+      
+      if (!fileName || fileName.trim().length === 0) {
+        fileName = 'unnamed_file';
       }
       
       // Generate file hash from buffer
