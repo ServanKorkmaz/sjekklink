@@ -1,6 +1,7 @@
 // Server-side URL scoring with direct provider integration
 import { checkGoogleSafeBrowsing } from '../../client/src/lib/providers/gsb';
 import { checkAbuseIPDB } from './abuseipdb';
+import { scanUrlWithVirusTotal } from './virustotal';
 import { getWhoisData } from '../../client/src/lib/providers/whois';
 import { analyzeUrlHeuristics, analyzeDomainAge } from '../../client/src/lib/providers/heuristics';
 import { submitToUrlScan } from '../../client/src/lib/providers/urlscan';
@@ -25,6 +26,7 @@ export async function checkUrlSafetyServer(url: string): Promise<{
 
     // Track external API availability
     let gsbWorking = false;
+    let vtWorking = false;
     let abuseIpDbWorking = false;
     
     // Google Safe Browsing check
@@ -49,6 +51,48 @@ export async function checkUrlSafetyServer(url: string): Promise<{
     } catch (error) {
       securityChecks.push({
         name: 'Google Safe Browsing',
+        status: 'error',
+        details: 'Service unavailable'
+      });
+    }
+
+    // VirusTotal URL check
+    try {
+      const vtResult = await scanUrlWithVirusTotal(url);
+      vtWorking = vtResult.available;
+      
+      if (vtResult.maliciousCount > 0) {
+        totalScore += 65;
+        reasons.push(`VirusTotal: ${vtResult.details}`);
+        securityChecks.push({
+          name: 'VirusTotal',
+          status: 'malicious',
+          details: vtResult.details
+        });
+      } else if (vtResult.suspiciousCount > 0) {
+        totalScore += 35;
+        reasons.push(`VirusTotal: ${vtResult.details}`);
+        securityChecks.push({
+          name: 'VirusTotal',
+          status: 'suspicious',
+          details: vtResult.details
+        });
+      } else if (vtResult.available) {
+        securityChecks.push({
+          name: 'VirusTotal',
+          status: 'clean',
+          details: 'No threats detected'
+        });
+      } else {
+        securityChecks.push({
+          name: 'VirusTotal',
+          status: 'error',
+          details: 'Service unavailable'
+        });
+      }
+    } catch (error) {
+      securityChecks.push({
+        name: 'VirusTotal',
         status: 'error',
         details: 'Service unavailable'
       });
