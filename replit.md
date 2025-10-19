@@ -28,42 +28,52 @@ The backend uses Express.js with TypeScript in a modular structure:
 - **Framework**: Express.js with middleware for request handling
 - **Database ORM**: Drizzle ORM for type-safe database operations
 - **API Design**: RESTful endpoints with proper error handling and rate limiting
-- **File Processing**: Base64 encoding for file uploads with hash-based deduplication
+- **Authentication**: Replit Auth (OpenID Connect) with session management
+- **File Processing**: Multer for file uploads (max 32MB) with filename sanitization
 - **Caching**: Built-in result caching to reduce API costs and improve performance
 
 Key architectural decisions include:
-- Provider pattern for external security services (Google Safe Browsing, PhishTank, etc.)
-- Rate limiting middleware to prevent abuse
+- Provider pattern for external security services (Google Safe Browsing, PhishTank, VirusTotal)
+- Rate limiting middleware to prevent abuse (10 requests per minute)
 - Comprehensive logging for monitoring and debugging
 - Modular storage interface for future database migration flexibility
+- Protected admin endpoints requiring authentication
 
 ## Data Storage
 The application uses PostgreSQL with Drizzle ORM for robust data management:
 - **Primary Database**: Neon PostgreSQL for scalable cloud database hosting
-- **Schema Design**: Three main entities - users, scan results, and API usage tracking
+- **Schema Design**: Four main entities - users (with email, firstName, lastName, profileImageUrl), sessions, scan results, and API usage tracking
 - **Data Types**: JSONB for flexible metadata storage and arrays for reason lists
+- **Session Storage**: PostgreSQL-backed session store using connect-pg-simple
 - **Migrations**: Drizzle Kit for version-controlled database schema changes
 
-The database schema supports both URL and file scanning with shared result structures, enabling unified reporting and analytics.
+The database schema supports both URL and file scanning with shared result structures, enabling unified reporting and analytics. User authentication sessions are persisted in the database for secure, scalable session management.
 
 ## Security and Risk Assessment
 The core security engine implements a multi-provider approach:
 - **Provider Interface**: Abstracted security check providers for modularity
 - **Scoring Algorithm**: Weighted risk scoring from 0-100 based on multiple factors
-- **Threat Intelligence**: Integration with Google Safe Browsing, PhishTank, and WHOIS data
+- **Threat Intelligence**: Integration with Google Safe Browsing, PhishTank, VirusTotal, and WHOIS data
 - **Heuristic Analysis**: Custom algorithms for domain age, URL patterns, and suspicious characteristics
-- **File Analysis**: VirusTotal integration for malware detection (development environment)
+- **File Analysis**: VirusTotal integration for comprehensive malware detection (both URL and file scanning)
+- **Authentication Security**: Replit Auth (OIDC) with secure session management and protected admin routes
+- **Input Validation**: Filename sanitization to prevent path traversal and injection attacks
 
-Risk assessment combines quantitative scores with qualitative reasons, providing users with both overall risk levels and detailed explanations.
+Risk assessment combines quantitative scores with qualitative reasons, providing users with both overall risk levels and detailed explanations. The application gracefully degrades to heuristic analysis when external security APIs are unavailable.
 
 # External Dependencies
 
 ## Security Providers
 - **Google Safe Browsing**: Web Risk API for known malicious URL detection
 - **PhishTank**: Community-driven phishing database for URL reputation
-- **VirusTotal**: File scanning and malware detection (development phase)
+- **VirusTotal**: Active integration for both URL and file scanning with multi-engine malware detection
 - **WHOIS/RDAP**: Domain registration and age verification services
 - **AbuseIPDB**: IP reputation and geolocation data
+
+## Authentication
+- **Replit Auth**: OpenID Connect authentication with Google, GitHub, and email/password support
+- **Session Management**: PostgreSQL-backed sessions with secure cookie settings
+- **Protected Routes**: Admin dashboard and admin API endpoints require authentication
 
 ## Cloud Services
 - **Neon Database**: PostgreSQL hosting with serverless scaling
