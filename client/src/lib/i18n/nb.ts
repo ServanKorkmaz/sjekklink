@@ -7,7 +7,14 @@ export const nb = {
     home: 'Hjem',
     fileScan: 'Filskanning',
     dashboard: 'Dashboard',
-    signIn: 'Logg inn'
+  },
+
+  // Authentication
+  auth: {
+    login: 'Logg inn',
+    logout: 'Logg ut',
+    unauthorized: 'Ikke autorisert',
+    loginRequired: 'Du må logge inn for å få tilgang til denne siden. Logger inn...',
   },
 
   // URL Scanner

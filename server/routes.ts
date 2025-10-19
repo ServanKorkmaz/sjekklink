@@ -6,6 +6,7 @@ import { z } from "zod";
 import { checkUrlSafetyServer } from "./lib/score";
 import { checkAbuseIPDB } from "./lib/abuseipdb";
 import { scanFileWithVirusTotal } from "./lib/virustotal";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import multer from "multer";
 import crypto from "crypto";
 
@@ -40,6 +41,21 @@ function checkRateLimit(ip: string): boolean {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth
+  await setupAuth(app);
+
+  // Auth endpoint
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
   // Rate limiting middleware
   app.use('/api/', (req, res, next) => {
     const ip = req.ip || req.connection.remoteAddress || 'unknown';
@@ -186,8 +202,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin endpoints
-  app.get("/api/admin/stats", async (req, res) => {
+  // Admin endpoints (protected)
+  app.get("/api/admin/stats", isAuthenticated, async (req, res) => {
     try {
       const stats = await storage.getApiUsageStats();
       res.json(stats);
@@ -197,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/recent-scans", async (req, res) => {
+  app.get("/api/admin/recent-scans", isAuthenticated, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const scans = await storage.getRecentScans(limit);

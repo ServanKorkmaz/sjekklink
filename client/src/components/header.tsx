@@ -2,16 +2,27 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Shield } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Menu, Shield, LogOut, User } from "lucide-react";
 import { nb } from "@/lib/i18n/nb";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Header() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   const navigation = [
     { name: nb.nav.dashboard, href: "/admin" },
   ];
+
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
+
+  const handleLogin = () => {
+    window.location.href = "/api/login";
+  };
 
   return (
     <header className="border-b border-slate-700 bg-slate-800">
@@ -40,7 +51,39 @@ export function Header() {
               {item.name}
             </Link>
           ))}
-          <Button data-testid="button-sign-in">{nb.nav.signIn}</Button>
+          
+          {isAuthenticated && user ? (
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage 
+                    src={user.profileImageUrl || undefined} 
+                    alt={user.email || 'User'} 
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-foreground">
+                  {user.firstName || user.email}
+                </span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout}
+                data-testid="button-logout"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {nb.auth.logout}
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={handleLogin} data-testid="button-sign-in">
+              {nb.auth.login}
+            </Button>
+          )}
         </nav>
 
         {/* Mobile Navigation */}
@@ -65,9 +108,39 @@ export function Header() {
                   {item.name}
                 </Link>
               ))}
-              <Button className="mt-4" data-testid="mobile-button-sign-in">
-                {nb.nav.signIn}
-              </Button>
+              
+              {isAuthenticated && user ? (
+                <div className="flex flex-col space-y-3 pt-4 border-t border-border">
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage 
+                        src={user.profileImageUrl || undefined} 
+                        alt={user.email || 'User'}
+                        style={{ objectFit: 'cover' }}
+                      />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm text-foreground">
+                      {user.firstName || user.email}
+                    </span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleLogout}
+                    data-testid="mobile-button-logout"
+                    className="justify-start"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {nb.auth.logout}
+                  </Button>
+                </div>
+              ) : (
+                <Button className="mt-4" onClick={handleLogin} data-testid="mobile-button-sign-in">
+                  {nb.auth.login}
+                </Button>
+              )}
             </nav>
           </SheetContent>
         </Sheet>
