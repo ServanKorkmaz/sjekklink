@@ -9,9 +9,7 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+const authEnabled = Boolean(process.env.REPLIT_DOMAINS && process.env.SESSION_SECRET);
 
 const getOidcConfig = memoize(
   async () => {
@@ -25,6 +23,15 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  if (!authEnabled) {
+    // Memory store for local development without Postgres/ENV
+    return session({
+      secret: "dev-session-secret",
+      resave: false,
+      saveUninitialized: true,
+      cookie: { httpOnly: true, secure: false, maxAge: sessionTtl },
+    });
+  }
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -70,6 +77,16 @@ async function upsertUser(
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
+  if (!authEnabled) {
+    // Dev mode: no external auth; mark all requests as authenticated
+    app.use((req, _res, next) => {
+      // @ts-expect-error augment at runtime
+      req.isAuthenticated = () => true;
+      next();
+    });
+    return;
+  }
+
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -85,8 +102,7 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  for (const domain of process.env.REPLIT_DOMAINS!.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -129,6 +145,9 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
+  if (!authEnabled) {
+    return next();
+  }
   const user = req.user as any;
 
   if (!req.isAuthenticated() || !user.expires_at) {
