@@ -1,9 +1,24 @@
 {
-  "redirects": [
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    },
     {
       "source": "/(.*)",
-      "destination": "https://sjekklink.no/$1",
-      "permanent": true
+      "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.0",
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
